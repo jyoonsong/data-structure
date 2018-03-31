@@ -21,28 +21,16 @@ public class BigInteger
     // Constructors
     public BigInteger()
     {
-        for (int i = 0; i < MAX_LENGTH; i++)
-            this.digits[i] = 0;
+        digits = new int [MAX_LENGTH];
         length = 0;
     }
 
-    public BigInteger(int sign)
+    public BigInteger(int digit)
     {
-        for (int i = 0; i < MAX_LENGTH; i++)
-            this.digits[i] = 0;
-        length = 0;
-        this.sign = sign;
-    }
-
-    public BigInteger(int[] digits)
-    {
-        this.digits = new int [MAX_LENGTH];
-        length = lastIndexOf(digits) + 1;
-
-        for (int i = 0; i < length; i++) {
-            this.digits[i] = digits[i];
-            System.out.println(i + " digit " + digits[i]);
-        }
+        digits = new int [MAX_LENGTH];
+        digits[0] = digit;
+        length = 1;
+        sign = 1;
     }
 
     public BigInteger(String sign, String num)
@@ -58,40 +46,37 @@ public class BigInteger
 
         // i = 10^i place value
         for (int i = 0; i < length; i++)
-            digits[i] = this.sign * Character.getNumericValue( num.charAt(length-i-1) );
+            digits[i] = Character.getNumericValue( num.charAt(length-i-1) );
 
     }
 
-    private static int[] checkCarry(int[] val) {
+    private void checkCarry(boolean isMultiply) {
 
-        for (int i = 0; i < lastIndexOf(val)+1; i++) {
+        // if addition or subtraction,
+        // max length is bigger operand's length+1
+        int max = this.length;
+        // if multiplication,
+        // max length is bigger operand's length*2
+        if ( isMultiply )
+            max = MAX_LENGTH;
 
-            // check if the digit is negative
-            int s = 1;
-            if (val[i] < 0)
-                s = -1;
+        for (int i = 0; i < max; i++) {
 
             // carry for addition
-            while ( val[i] * s >= 10 ) {
-                System.out.print(i + "번째 " + val[i]);
-                val[i] -= (10 * s);
-                val[i+1] += s;
-                System.out.println(" => " + val[i]);
+            while ( this.digits[i] >= 10 ) {
+                this.digits[i] -= 10;
+                this.digits[i+1]++;
             }
 
             // carry for subtraction
-            while ( val[i] * s < 0 ) {
-                System.out.print(i + "th " + val[i]);
-                val[i] += (10 * s);
-                val[i+1] -= s;
-                System.out.println(" => " + val[i]);
+            while ( this.digits[i] < 0 ) {
+                this.digits[i] += 10;
+                this.digits[i+1]--;
             }
         }
-
-        return val;
     }
 
-    private static int lastIndexOf(int[] val) {
+    private int lastIndexOf(int[] val) {
         int i = MAX_LENGTH-1;
         while (i>0 && val[i] == 0) {
             i--;
@@ -99,27 +84,67 @@ public class BigInteger
         return i;
     }
 
-    public BigInteger negate(BigInteger big) {
-        big.sign *= -1;
-        for (int i = 0; i < big.length; i++)
-            big.digits[i] *= -1;
-        return big;
+    public int compareTo(BigInteger big) {
+        if (this.length > big.length)
+            return 1;
+        else if (this.length < big.length)
+            return -1;
+        else {
+            for (int i = this.length-1; i >= 0; i--) {
+                if (this.digits[i] > big.digits[i])
+                    return 1;
+                else if (this.digits[i] < big.digits[i])
+                    return -1;
+            }
+        }
+        return 0;
+
+    }
+
+    private boolean isZero() {
+        if (this.compareTo( new BigInteger(0) ) == 0)
+            return true;
+        return false;
     }
 
     public BigInteger add(BigInteger big)
     {
-        // add each digit
-        int[] digits = new int[MAX_LENGTH];
+        BigInteger result = new BigInteger();
+        int sl = 1;
+        int sr = 1;
 
+        // sign assignment
+        if (this.sign == big.sign) {
+            // same sign holds
+            result.sign = this.sign;
+        }
+        else {
+            // bigger number holds
+            int c = this.compareTo(big);
+            if ( c > 0 ) {
+                result.sign = this.sign;
+                sr = -1;
+            }
+            else if ( c < 0 ) {
+                result.sign = big.sign;
+                sl = -1;
+            }
+            else {
+                return new BigInteger(0);
+            }
+        }
 
-        for (int i = 0; i < this.length || i < big.length; i++)
-            digits[i] = this.digits[i] + big.digits[i];
+        // store each digit
+        for (int i = 0; i < this.length || i < big.length; i++) {
+            result.digits[i] = sl * this.digits[i] + sr * big.digits[i];
+            result.length++;
+        }
 
         // check carry in and out
-        digits = checkCarry(digits);
+        result.checkCarry(false);
 
-        // convert resulting array into BigInteger
-        BigInteger result = new BigInteger(digits);
+        // update length
+        result.length = lastIndexOf(result.digits) + 1;
 
         return result;
     }
@@ -127,12 +152,40 @@ public class BigInteger
     public BigInteger subtract(BigInteger big)
     {
         // same with addition after negation of right operand
-        return this.add( negate(big) );
+        big.sign *= -1;
+        return this.add( big );
     }
 
     public BigInteger multiply(BigInteger big)
     {
-        return this;
+        BigInteger result = new BigInteger();
+
+        // sign assignment
+        if (this.isZero() || big.isZero())
+            // zero included => zero
+            return new BigInteger(0);
+        else if (this.sign == big.sign) {
+            // same sign => positive
+            result.sign = 1;
+        }
+        else {
+            // diff sign => negative
+            result.sign = -1;
+        }
+
+        // store each digit
+        for (int i = 0; i < this.length; i++) {
+            for (int j = 0; j < big.length; j++)
+                result.digits[i+j] += this.digits[i] * big.digits[j];
+        }
+
+        // check carry in and out
+        result.checkCarry(true);
+
+        // update length
+        result.length = lastIndexOf(result.digits) + 1;
+
+        return result;
     }
 
     @Override
@@ -159,7 +212,7 @@ public class BigInteger
 
     public String getDigit(int i)
     {
-        return Integer.toString( (this.digits[i]) );
+        return Integer.toString( Math.abs(this.digits[i]) );
     }
 
     private static String removeSpace(String str)

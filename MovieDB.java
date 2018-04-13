@@ -8,125 +8,135 @@ import java.util.NoSuchElementException;
  * 유지하는 데이터베이스이다. 
  */
 public class MovieDB {
+	private MyLinkedList<Genre> genreList;
+
     public MovieDB() {
-        // FIXME implement this
-    	
-    	// HINT: MovieDBGenre 클래스를 정렬된 상태로 유지하기 위한 
-    	// MyLinkedList 타입의 멤버 변수를 초기화 한다.
+    	genreList = new MyLinkedList<>();
     }
 
     public void insert(MovieDBItem item) {
-        // FIXME implement this
-        // Insert the given item to the MovieDB.
+    	Genre newGenre = new Genre(item.getGenre(), item.getTitle());
 
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle());
+		for (Genre curr : genreList) {
+			// if genre already exists
+			if ( curr.equals(newGenre) ) {
+				curr.getList().add(item.getTitle());
+				return;
+			}
+		}
+		// else insert new genre
+		genreList.add(newGenre);
     }
 
     public void delete(MovieDBItem item) {
-        // FIXME implement this
-        // Remove the given item from the MovieDB.
-    	
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle());
+    	Genre ofItem = new Genre(item.getGenre());
+
+    	for (Genre curr : genreList) {
+    		// if genre exists
+			if (curr.equals(ofItem)) {
+				curr.getList().remove(item.getTitle());
+				// check if genre became empty
+				if (curr.getList().isEmpty())
+					genreList.remove(curr);
+				return;
+			}
+		}
     }
 
     public MyLinkedList<MovieDBItem> search(String term) {
-        // FIXME implement this
-        // Search the given term from the MovieDB.
-        // You should return a linked list of MovieDBItem.
-        // The search command is handled at SearchCmd class.
-    	
-    	// Printing search results is the responsibility of SearchCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
-    	
-        // This tracing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-    	System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term);
-    	
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
+
         MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
+
+        for (Genre genre : genreList) {
+        	for (String title : genre.getList()) {
+        		if (title.contains(term))
+        			results.add(new MovieDBItem(genre.getItem(), title));
+			}
+		}
 
         return results;
     }
     
     public MyLinkedList<MovieDBItem> items() {
-        // FIXME implement this
-        // Search the given term from the MovieDatabase.
-        // You should return a linked list of QueryResult.
-        // The print command is handled at PrintCmd class.
-
-    	// Printing movie items is the responsibility of PrintCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
-
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: ITEMS\n");
-
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
         MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
-        
+
+        for (Genre genre : genreList) {
+        	for (String title : genre.getList()) {
+        		results.add(new MovieDBItem(genre.getItem(), title));
+			}
+		}
+
     	return results;
     }
 }
 
 class Genre extends Node<String> implements Comparable<Genre> {
+
+	private MovieList list;
+
 	public Genre(String name) {
 		super(name);
-		throw new UnsupportedOperationException("not implemented yet");
+		list = new MovieList(this);
+	}
+
+	public Genre(String name, String title) {
+		super(name);
+		list = new MovieList(this, title);
+	}
+
+	public MovieList getList() {
+		return list;
 	}
 	
 	@Override
 	public int compareTo(Genre o) {
-		throw new UnsupportedOperationException("not implemented yet");
+		return this.getItem().compareTo(o.getItem());
 	}
 
 	@Override
 	public int hashCode() {
-		throw new UnsupportedOperationException("not implemented yet");
+		// modification from sample code in MovieDBItem.java
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.getItem() == null) ? 0 : this.getItem().hashCode());
+		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		throw new UnsupportedOperationException("not implemented yet");
+		// modification from sample code in MovieDBItem.java
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Genre other = (Genre) obj;
+		if (this.getItem() == null) {
+			if (other.getItem() != null)
+				return false;
+		} else if (!this.getItem().equals(other.getItem()))
+			return false;
+		return true;
 	}
 }
 
-class MovieList implements ListInterface<String> {	
+class MovieList extends MyLinkedList<String> implements ListInterface<String> {
+
 	public MovieList() {
+		super();
 	}
 
-	@Override
-	public Iterator<String> iterator() {
-		throw new UnsupportedOperationException("not implemented yet");
+	public MovieList(Genre genre) {
+		head = genre;
+		head.setNext(null);
+		numItems = 0;
 	}
 
-	@Override
-	public boolean isEmpty() {
-		throw new UnsupportedOperationException("not implemented yet");
+	public MovieList(Genre genre, String title) {
+		head = genre;
+		head.setNext(new Node<> (title));
+		numItems = 1;
 	}
 
-	@Override
-	public int size() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public void add(String item) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public String first() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public void removeAll() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
 }

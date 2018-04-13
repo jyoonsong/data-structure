@@ -7,5 +7,7 @@ public interface ListInterface<T> extends Iterable<T> {
 
 	public T first();
 
+	public void remove(T item);
+
 	public void removeAll();
 }

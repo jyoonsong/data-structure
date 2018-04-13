@@ -2,7 +2,7 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MyLinkedList<T> implements ListInterface<T> {
+public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	// dummy head
 	Node<T> head;
 	int numItems;
@@ -48,10 +48,35 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	public void add(T item) {
 		Node<T> last = head;
 		while (last.getNext() != null) {
+			int seq = last.getNext().getItem().compareTo(item);
+			// if item should precede next
+			if ( seq > 0 )
+				break;
+			// else if item already exists
+			else if ( seq == 0 )
+				return;
 			last = last.getNext();
 		}
 		last.insertNext(item);
 		numItems += 1;
+	}
+
+	@Override
+	public void remove(T item) {
+		Node<T> last = head;
+		while (last.getNext() != null) {
+			int seq = last.getNext().getItem().compareTo(item);
+			// if item not found
+			if ( seq > 0 )
+				return;
+			// if item found
+			else if ( seq == 0 ) {
+				last.removeNext();
+				numItems -= 1;
+				return;
+			}
+			last = last.getNext();
+		}
 	}
 
 	@Override
@@ -60,7 +85,7 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	}
 }
 
-class MyLinkedListIterator<T> implements Iterator<T> {
+class MyLinkedListIterator<T extends Comparable<T>> implements Iterator<T> {
 	// FIXME implement this
 	// Implement the iterator for MyLinkedList.
 	// You have to maintain the current position of the iterator.

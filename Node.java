@@ -29,10 +29,11 @@ public class Node<T> {
     }
     
     public final void insertNext(T obj) {
-		throw new UnsupportedOperationException("not implemented yet");
+        Node<T> newNode = new Node<T>(obj, next);
+        this.next = newNode;
     }
     
     public final void removeNext() {
-		throw new UnsupportedOperationException("not implemented yet");
+        this.next = next.getNext();
     }
 }

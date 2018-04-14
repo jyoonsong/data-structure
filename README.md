@@ -43,5 +43,3 @@ $ diff data.out myData.out
 Professor Byung Ro Moon
 
 https://soar.snu.ac.kr
-
-https://snucse.org

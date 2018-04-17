@@ -8,7 +8,7 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	int numItems;
 
 	public MyLinkedList() {
-		head = new Node<T>(null);
+		head = new Node<>(null);
 	}
 
     /**

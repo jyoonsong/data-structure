@@ -31,7 +31,7 @@ $ diff data.out myData.out
 | Assignment  |  Result  |
 |---|---|
 | BigInteger  | 100  |
-| MovieDatabase |  - |
+| MovieDatabase |  100 |
 | StackCalculator  | -  | 
 | Sorting  | -  | 
 | Matching  | -  | 

@@ -5,12 +5,11 @@ import java.util.regex.Pattern;
 
 public class CalculatorTest
 {
-    public static final Pattern EXPRESSION_PATTERN = Pattern.compile("(?<operator>[-+*/%^()])|(?<operand>\\d+)");
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("(?<operator>[-+*/%^()])|(?<operand>\\d+)");
 
     public static void main(String args[])
 	{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
 		while (true)
 		{
 			try
@@ -33,10 +32,10 @@ public class CalculatorTest
 	    // convert prefix into postfix and calculate
 	    String postfixExp = convert(input);
 	    long result = eval(postfixExp);
-	    
+
 	    // print postfix expression
         System.out.println( postfixExp );
-        
+
         // print result
         System.out.println( result );
 
@@ -47,7 +46,7 @@ public class CalculatorTest
         Matcher matcher = EXPRESSION_PATTERN.matcher(prefixExp);
 
         // Use Stack & StringBuilder to (3) convert infix into postfix expression
-        Stack<Character> operators = new Stack();
+        Stack<Character> operators = new Stack<>();
         StringBuilder postfixExp =  new StringBuilder();
 
         boolean turnOfOperand = true;
@@ -83,6 +82,7 @@ public class CalculatorTest
                 // stack pop until open parenthesis
                 while (operators.peek() != '(') {
                     postfixExp.append(operators.pop() + " ");
+                    if (operators.isEmpty()) throw new Exception();
                 }
                 // throw away open parenthesis
                 operators.pop();
@@ -121,6 +121,10 @@ public class CalculatorTest
 
         }
 
+        // ends with operand (or closing parenthesis), thus turnOfOperand should be false
+        if (turnOfOperand)
+            throw new Exception();
+
         // add rest of the operators in the back
         while (!operators.isEmpty())
             postfixExp.append(operators.pop() + " ");
@@ -131,6 +135,7 @@ public class CalculatorTest
     private static String checkStack(char c, Stack<Character> operators) {
         String out = "";
 
+        // check stack and pop anything prior to current operator
         while (!operators.isEmpty()) {
             char top = operators.peek();
 
@@ -147,6 +152,7 @@ public class CalculatorTest
     }
 
     private static int priorityOf(char c) {
+        // return priority of operators
         switch (c) {
             case '+': case '-':
                 return 0;
@@ -164,19 +170,19 @@ public class CalculatorTest
         String [] tokens = postfixExp.split(" ");
         Stack<Long> operands = new Stack<>();
 
-        for (int i = 0; i < tokens.length; i++) {
+        for (String token : tokens) {
             // push if number
-            if ( Character.isDigit(tokens[i].charAt(0)) )
-                operands.push( Long.parseLong(tokens[i]) );
-            // unary operator
-            else if ( tokens[i].equals("~") )
-                operands.push( -1 * operands.pop() );
-            // binary operator
+            if (Character.isDigit(token.charAt(0)))
+                operands.push(Long.parseLong(token));
+                // unary operator
+            else if (token.equals("~"))
+                operands.push(-1 * operands.pop());
+                // binary operator
             else {
                 long right = operands.pop();
                 long left = operands.pop();
 
-                switch( tokens[i].charAt(0) ) {
+                switch (token.charAt(0)) {
                     case '+':
                         operands.push(left + right);
                         break;
@@ -192,14 +198,14 @@ public class CalculatorTest
                         operands.push(left / right);
                         break;
                     case '%':
-                        if (right < 0)
+                        if (right == 0)
                             throw new Exception();
                         operands.push(left % right);
                         break;
                     case '^':
-                        if (left == 0)
+                        if (left == 0 && right < 0)
                             throw new Exception();
-                        operands.push( (long) Math.pow(left, right) );
+                        operands.push((long) Math.pow(left, right));
                         break;
                     default:
                         throw new Exception();
@@ -209,6 +215,7 @@ public class CalculatorTest
 
         long result = operands.pop();
 
+        // after all operations, stack should be empty
         if (operands.isEmpty())
             return result;
         else

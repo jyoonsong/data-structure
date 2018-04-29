@@ -30,15 +30,15 @@ public class CalculatorTest
 
 	private static void command(String input) throws Exception
 	{
-	    // split prefix expression
-	    // convert prefix into postfix
+	    // convert prefix into postfix and calculate
 	    String postfixExp = convert(input);
+	    long result = eval(postfixExp);
 	    
 	    // print postfix expression
         System.out.println( postfixExp );
         
-        // evaluate postfix expression
-        System.out.println( eval(postfixExp) );
+        // print result
+        System.out.println( result );
 
 	}
 
@@ -98,9 +98,7 @@ public class CalculatorTest
                 }
                 else {
                     // before push, check stack
-                    while ( operators.isEmpty() || operators.peek() == '(' || priorTo(c, operators.peek()) < 0 ) {
-                        postfixExp.append(operators.pop() + " ");
-                    }
+                    postfixExp.append( checkStack(c, operators) );
                     operators.push(c);
 
                     // next turn should be operand
@@ -114,9 +112,7 @@ public class CalculatorTest
                     throw new Exception();
 
                 // before push, check stack
-                while ( operators.isEmpty() || operators.peek() == '(' || priorTo(c, operators.peek()) < 0 ) {
-                    postfixExp.append(operators.pop() + " ");
-                }
+                postfixExp.append( checkStack(c, operators) );
                 operators.push(c);
 
                 // next turn should be operand
@@ -125,11 +121,29 @@ public class CalculatorTest
 
         }
 
-        return postfixExp.toString();
+        // add rest of the operators in the back
+        while (!operators.isEmpty())
+            postfixExp.append(operators.pop() + " ");
+
+        return postfixExp.toString().trim();
     }
 
-    private static int priorTo(char c, Character stackTop) {
-        return Integer.compare(priorityOf(c), priorityOf(stackTop));
+    private static String checkStack(char c, Stack<Character> operators) {
+        String out = "";
+
+        while (!operators.isEmpty()) {
+            char top = operators.peek();
+
+            int cmp = Integer.compare(priorityOf(c), priorityOf(top));
+            if (cmp > 0)
+                break;
+            else if (cmp == 0)
+                if (c == '^' || c == '~') break;
+
+            out += (operators.pop() + " ");
+        }
+
+        return out;
     }
 
     private static int priorityOf(char c) {
@@ -146,7 +160,58 @@ public class CalculatorTest
         return -1;
     }
 
-    private static long eval(String postfixExp) {
-        return 1;
+    private static long eval(String postfixExp) throws Exception {
+        String [] tokens = postfixExp.split(" ");
+        Stack<Long> operands = new Stack<>();
+
+        for (int i = 0; i < tokens.length; i++) {
+            // push if number
+            if ( Character.isDigit(tokens[i].charAt(0)) )
+                operands.push( Long.parseLong(tokens[i]) );
+            // unary operator
+            else if ( tokens[i].equals("~") )
+                operands.push( -1 * operands.pop() );
+            // binary operator
+            else {
+                long right = operands.pop();
+                long left = operands.pop();
+
+                switch( tokens[i].charAt(0) ) {
+                    case '+':
+                        operands.push(left + right);
+                        break;
+                    case '-':
+                        operands.push(left - right);
+                        break;
+                    case '*':
+                        operands.push(left * right);
+                        break;
+                    case '/':
+                        if (right == 0)
+                            throw new Exception();
+                        operands.push(left / right);
+                        break;
+                    case '%':
+                        if (right < 0)
+                            throw new Exception();
+                        operands.push(left % right);
+                        break;
+                    case '^':
+                        if (left == 0)
+                            throw new Exception();
+                        operands.push( (long) Math.pow(left, right) );
+                        break;
+                    default:
+                        throw new Exception();
+                }
+            }
+        }
+
+        long result = operands.pop();
+
+        if (operands.isEmpty())
+            return result;
+        else
+            throw new Exception();
     }
 }

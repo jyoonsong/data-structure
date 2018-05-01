@@ -32,7 +32,7 @@ $ diff data.out myData.out
 |---|---|
 | BigInteger  | 100  |
 | MovieDatabase |  100 |
-| StackCalculator  | -  | 
+| StackCalculator  | 100  | 
 | Sorting  | -  | 
 | Matching  | -  | 
 | Subway  | -  | 

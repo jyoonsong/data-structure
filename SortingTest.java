@@ -94,49 +94,180 @@ public class SortingTest
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static int[] tmp; // for mergesort and radixSort
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoBubbleSort(int[] value)
 	{
-		// TODO : Bubble Sort 를 구현하라.
-		// value는 정렬안된 숫자들의 배열이며 value.length 는 배열의 크기가 된다.
-		// 결과로 정렬된 배열은 리턴해 주어야 하며, 두가지 방법이 있으므로 잘 생각해서 사용할것.
-		// 주어진 value 배열에서 안의 값만을 바꾸고 value를 다시 리턴하거나
-		// 같은 크기의 새로운 배열을 만들어 그 배열을 리턴할 수도 있다.
+	    // compare one by one
+        for (int i = value.length - 1; i > 0; i--) {
+            for (int j = 0; j < i; j++)
+                // move bigger item to right
+                if (value[j] > value[j+1])
+                    swap(value, j, j+1);
+        }
 		return (value);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoInsertionSort(int[] value)
 	{
-		// TODO : Insertion Sort 를 구현하라.
+        for (int i = 1; i < value.length; i++) {
+            int newItem = value[i], loc;
+            for (loc = i-1; loc >= 0 && newItem < value[loc]; loc--)
+                value[loc+1] = value[loc];
+            value[loc+1] = newItem;
+        }
 		return (value);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoHeapSort(int[] value)
 	{
-		// TODO : Heap Sort 를 구현하라.
+		int n = value.length;
+
+		// Step 1: build initial heap A[1...n]
+		for (int i = n/2; i >= 0; i--) // n/2는 최초로 heap 수선이 필요할 수 있는 부모
+			percolateDown(value, i, n-1);
+
+		// Step 2: delete one by one
+		for (int size = n-1; size > 0; size--) {
+			swap(value, 0, size);
+			percolateDown(value, 0, size - 1);
+		}
+
 		return (value);
+	}
+	private static void percolateDown(int[] key, int i, int size) {
+		int child = 2*i; // left child
+		int right = 2*i + 1; // right child
+		if (child <= size) {
+			if ( right <= size && key[child] < key[right] )
+				child = right; // index of larger child
+			if ( key[i] < key[child] ) {
+				swap(key, i, child);
+				percolateDown(key, child, size);
+			}
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoMergeSort(int[] value)
 	{
-		// TODO : Merge Sort 를 구현하라.
-		return (value);
+		tmp = new int[value.length];
+		mergeSort(value, 0, value.length -1);
+	    return (value);
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+    private static void mergeSort(int[] value, int p, int r) {
+        if (p < r) {
+            int q = (p+r)/2;
+            mergeSort(value, p, q);
+            mergeSort(value, q+1, r);
+            merge(value, p, q, r);
+        }
+    }
+
+    private static void merge(int[] value, int p, int q, int r) {
+	    int i = p, j = q+1, t = 0;
+	    // merge value[p...q] and value[q+1...r]
+	    while (i <= q && j <= r) {
+	        if (value[i] <= value[j])
+	            tmp[t++] = value[i++];
+	        else tmp[t++] = value[j++];
+        }
+        // when value[p...q] remains not empty
+        while (i <= q)
+            tmp[t++] = value[i++];
+	    // when value[q+1...r] remains not empty
+        while (j <= r)
+            tmp[t++] = value[j++];
+        // save tmp to value
+        i = p; t = 0;
+        while (i <= r)
+            value[i++] = tmp[t++];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoQuickSort(int[] value)
 	{
-		// TODO : Quick Sort 를 구현하라.
+        quickSort(value, 0, value.length -1);
 		return (value);
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+    private static void quickSort(int[] value, int p, int r) {
+	    if (p < r) {
+	        int q = partition(value, p, r);
+	        quickSort(value, p, q-1);
+	        quickSort(value, q+1, r);
+        }
+    }
+
+    private static int partition(int[] value, int p, int r) {
+	    // select last item as a pivot
+	    int pivot = value[r];
+	    // compare each element with pivot x and partition
+	    int i = p-1;
+	    for (int j = p; j <= r-1; j++)
+	        if (value[j] <= pivot)
+	            swap(value, ++i, j);
+	    // set pivot in the right place
+	    swap(value, i+1, r);
+	    return (i+1);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoRadixSort(int[] value)
 	{
-		// TODO : Radix Sort 를 구현하라.
+	    // find the maximum number of digits
+	    int maxDigits = 1;
+	    int max = 0;
+	    for (int i = 0; i < value.length; i++) {
+	        int curr = value[i];
+	        if (curr < 0)
+	        	curr *= -1;
+	        if (curr > max)
+	            max = curr;
+        }
+        for (max /= 10; max > 0; max /= 10)
+        	maxDigits *= 10;
+
+        // do stable sort
+		value = radixSort(value, maxDigits);
+
 		return (value);
 	}
+
+    private static int[] radixSort(int[] value, int max) {
+		int [] counter;
+		tmp = new int[value.length];
+
+        // sort from LSB to MSB
+        for (int d = 1; d <= max; d *= 10) {
+			// count elements per group
+			counter = new int [19]; // -9 ~ 9
+
+	        for (int i = 0; i < value.length; i++)
+	            counter[ (value[i] / d) % 10 + 9 ]++;
+
+	        for (int i = 1; i < counter.length; i++)
+	        	counter[i] += counter[i-1];
+
+	        for (int i = value.length - 1; i >= 0; i--)
+	        	tmp[--counter[ (value[i] / d) % 10 + 9 ]] = value[i];
+
+	        int[] original = value;
+	        value = tmp;
+	        tmp = original;
+        }
+        return value;
+    }
+
+    // swap method for bubbleSort & quickSort
+    private static void swap(int[] value, int i, int j) {
+        int tmp = value[i];
+        value[i] = value[j];
+        value[j] = tmp;
+    }
+
 }

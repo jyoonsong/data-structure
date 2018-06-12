@@ -35,7 +35,7 @@ $ diff data.out myData.out
 | StackCalculator  | 100/100  | 
 | Sorting  | 50/50  | 
 | Matching  | 100/100  | 
-| Subway  | -  | 
+| Subway  | 110/110 | 
 
 
 ### Ref

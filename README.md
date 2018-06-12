@@ -30,12 +30,12 @@ $ diff data.out myData.out
 
 | Assignment  |  Result  |
 |---|---|
-| BigInteger  | 100/100  |
-| MovieDatabase |  100/100 |
-| StackCalculator  | 100/100  | 
-| Sorting  | 50/50  | 
-| Matching  | 100/100  | 
-| Subway  | 110/110 | 
+| BigInteger  | 100 / 100  |
+| MovieDatabase |  100 / 100 |
+| StackCalculator  | 100 / 100  | 
+| Sorting  | 50 / 50  | 
+| Matching  | 100 / 100  | 
+| Subway  | 110 / 110 | 
 
 
 ### Ref
